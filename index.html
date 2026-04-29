@@ -3652,46 +3652,27 @@
                 closeBtn.onclick = closeModal;
                 cancelBtn.onclick = closeModal;
                 
-                // Show/hide options based on export mode
-                const updateExportOptions = () => {
-                    const mode = document.querySelector('input[name="export-mode"]:checked').value;
-                    const professionalOptions = ['export-creator', 'export-date', 'export-comments'].map(id => 
-                        document.getElementById(id).closest('.property-row')
-                    );
-                    const orientationRow = document.querySelector('input[name="export-orientation"]').closest('.property-row');
-                    
-                    if (mode === 'simple') {
-                        professionalOptions.forEach(row => row.style.display = 'none');
-                        orientationRow.style.display = 'none';
-                    } else {
-                        professionalOptions.forEach(row => row.style.display = 'flex');
-                        orientationRow.style.display = 'flex';
-                    }
+                // Hide all the legacy "Professional" fields — neither Simple nor
+                // Heatmap mode uses creator/date/comments/layout. They stay in the
+                // DOM in case we want to bring them back later.
+                const hideLegacyFields = () => {
+                    ['export-creator', 'export-date', 'export-comments'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.closest('.property-row').style.display = 'none';
+                    });
+                    const orientationInput = document.querySelector('input[name="export-orientation"]');
+                    if (orientationInput) orientationInput.closest('.property-row').style.display = 'none';
                 };
-                
-                document.querySelectorAll('input[name="export-mode"]').forEach(radio => {
-                    radio.addEventListener('change', updateExportOptions);
-                });
-                updateExportOptions();
+                hideLegacyFields();
                 
                 // Export handler
                 exportBtn.onclick = () => {
                     const exportMode = document.querySelector('input[name="export-mode"]:checked').value;
                     const includeGrid = document.getElementById('export-include-grid').checked;
+                    const includeHeatmap = exportMode === 'heatmap';
                     
-                    if (exportMode === 'simple') {
-                        closeModal();
-                        this.exportSVGSimple(includeGrid);
-                    } else {
-                        const projectName = document.getElementById('export-project-name').value || 'Floor Plan';
-                        const creator = document.getElementById('export-creator').value || 'Unknown';
-                        const date = document.getElementById('export-date').value;
-                        const comments = document.getElementById('export-comments').value;
-                        const orientation = document.querySelector('input[name="export-orientation"]:checked').value;
-                        
-                        closeModal();
-                        this.exportSVGEnhanced(projectName, creator, date, comments, orientation, includeGrid);
-                    }
+                    closeModal();
+                    this.exportSVGSimple(includeGrid, includeHeatmap);
                 };
                 
                 // Close on backdrop click
@@ -4063,9 +4044,13 @@
                 console.groupEnd();
             }
             
-            exportSVGSimple(includeGrid) {
+            exportSVGSimple(includeGrid, includeHeatmap = false) {
                 if (this.walls.length === 0 && this.assets.length === 0) {
                     alert('Nothing to export! Add walls or furniture first.');
+                    return;
+                }
+                if (includeHeatmap && this.pathSegments.length === 0) {
+                    alert('Heatmap export needs at least one walking path.');
                     return;
                 }
                 
@@ -4153,6 +4138,16 @@
                     this.drawGrid();
                 }
                 
+                // Heatmap layer goes between grid and walls so the floor plan
+                // remains crisp on top. We temporarily flip the visibility flag
+                // because drawDensityHeatmap() bails when it's off.
+                if (includeHeatmap) {
+                    const wasVisible = this.densityHeatmapVisible;
+                    this.densityHeatmapVisible = true;
+                    this.drawDensityHeatmap();
+                    this.densityHeatmapVisible = wasVisible;
+                }
+                
                 // Draw walls and assets
                 if (this.walls.length > 0) {
                     this.drawWalls();
@@ -4175,7 +4170,7 @@
                 
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = 'floor_plan_simple.svg';
+                link.download = includeHeatmap ? 'floor_plan_heatmap.svg' : 'floor_plan_simple.svg';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -8401,12 +8396,12 @@
                     <label style="min-width: 120px;">Export Mode:</label>
                     <div style="flex: 1; display: flex; gap: 15px;">
                         <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="export-mode" value="professional" checked>
-                            <span>Professional (with notes & title)</span>
+                            <input type="radio" name="export-mode" value="simple" checked>
+                            <span>Simple (floor plan only)</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="export-mode" value="simple">
-                            <span>Simple (floor plan only)</span>
+                            <input type="radio" name="export-mode" value="heatmap">
+                            <span>Heatmap (floor plan + density)</span>
                         </label>
                     </div>
                 </div>
