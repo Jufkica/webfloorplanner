@@ -3670,9 +3670,17 @@
                     const exportMode = document.querySelector('input[name="export-mode"]:checked').value;
                     const includeGrid = document.getElementById('export-include-grid').checked;
                     const includeHeatmap = exportMode === 'heatmap';
+                    const includeDimensions = document.getElementById('export-include-dimensions').checked;
+                    const colorOverrideOn = document.getElementById('export-color-override').checked;
+                    const colorOverride = colorOverrideOn
+                        ? document.getElementById('export-color-value').value
+                        : null;
                     
                     closeModal();
-                    this.exportSVGSimple(includeGrid, includeHeatmap);
+                    this.exportSVGSimple(includeGrid, includeHeatmap, {
+                        hideDimensions: !includeDimensions,
+                        colorOverride
+                    });
                 };
                 
                 // Close on backdrop click
@@ -4044,7 +4052,8 @@
                 console.groupEnd();
             }
             
-            exportSVGSimple(includeGrid, includeHeatmap = false) {
+            exportSVGSimple(includeGrid, includeHeatmap = false, options = {}) {
+                const { hideDimensions = false, colorOverride = null } = options;
                 if (this.walls.length === 0 && this.assets.length === 0) {
                     alert('Nothing to export! Add walls or furniture first.');
                     return;
@@ -4133,6 +4142,10 @@
                 this.canvas = exportSvg;
                 this.viewBox = { x: origMinX, y: origMinY, width: contentWidth, height: contentHeight };
                 
+                // Tell the dimension drawers to bail if the user opted out.
+                const prevHideDims = this.exportHideDimensions;
+                this.exportHideDimensions = !!hideDimensions;
+                
                 // Draw grid if requested
                 if (includeGrid) {
                     this.drawGrid();
@@ -4158,9 +4171,18 @@
                     });
                 }
                 
+                // Apply optional color override across all rendered geometry. We
+                // walk the tree and rewrite stroke/fill, but leave white fills
+                // (label pills, door frames, the page background) and elements
+                // marked data-export-keep-color (the density heatmap) alone.
+                if (colorOverride) {
+                    this.applyExportColorOverride(exportSvg, colorOverride);
+                }
+                
                 // Restore original canvas and viewBox
                 this.canvas = originalCanvas;
                 this.viewBox = originalViewBox;
+                this.exportHideDimensions = prevHideDims;
                 
                 // Serialize and download
                 const serializer = new XMLSerializer();
@@ -4177,6 +4199,51 @@
                 URL.revokeObjectURL(url);
             }
 
+            // Walk an exported SVG tree and rewrite stroke/fill colors to a
+            // single user-chosen color. We deliberately leave a few things
+            // alone so the result stays readable:
+            //   - elements (and descendants) tagged data-export-keep-color
+            //     (used by the density heatmap layer) keep their colors
+            //   - 'none' and url(...) references (e.g. the wall hatch pattern)
+            //     stay as-is
+            //   - white-ish fills (label pill backgrounds, door interiors,
+            //     pattern background, page background) stay white so the
+            //     override color contrasts against them
+            applyExportColorOverride(root, color) {
+                if (!root || root.nodeType !== 1) return;
+                if (root.getAttribute && root.getAttribute('data-export-keep-color') === '1') return;
+                
+                const isWhite = (v) => {
+                    if (!v) return false;
+                    const s = v.trim().toLowerCase();
+                    return s === 'white' || s === '#fff' || s === '#ffffff' ||
+                           s === 'rgb(255,255,255)' || s === 'rgb(255, 255, 255)';
+                };
+                const isReplaceable = (v) => {
+                    if (!v) return false;
+                    const s = v.trim().toLowerCase();
+                    if (s === 'none' || s === 'transparent') return false;
+                    if (s.startsWith('url(')) return false;
+                    return true;
+                };
+                
+                const stroke = root.getAttribute && root.getAttribute('stroke');
+                if (isReplaceable(stroke)) {
+                    root.setAttribute('stroke', color);
+                }
+                const fill = root.getAttribute && root.getAttribute('fill');
+                if (isReplaceable(fill) && !isWhite(fill)) {
+                    root.setAttribute('fill', color);
+                }
+                
+                const children = root.children;
+                if (children) {
+                    for (let i = 0; i < children.length; i++) {
+                        this.applyExportColorOverride(children[i], color);
+                    }
+                }
+            }
+            
             exportSVG() {
                 // Ask user if they want to include the grid
                 const includeGrid = confirm('Include grid in export?\n\nClick OK to include grid, or Cancel for clean export.');
@@ -5041,6 +5108,9 @@
                 const layer = document.createElementNS(svgNS, 'g');
                 layer.setAttribute('opacity', '0.7');
                 layer.setAttribute('pointer-events', 'none');
+                // Marker so the export color override skips the heatmap layer
+                // and preserves its jet colormap.
+                layer.setAttribute('data-export-keep-color', '1');
                 
                 const threshold = 0.08; // skip cells below 8% of peak (trims faint fringe)
                 // Slight overlap (1px in world units) hides cell seams when zoomed.
@@ -6643,6 +6713,8 @@
             }
             
             drawAssetDimensions(group, asset) {
+                // Skip dimensions entirely when an export run requested it.
+                if (this.exportHideDimensions) return;
                 const svgNS = 'http://www.w3.org/2000/svg';
                 const halfW = asset.width / 2;
                 const halfH = asset.height / 2;
@@ -6905,6 +6977,8 @@
             }
             
             drawWallDimension(wall, wallIndex = -1) {
+                // Skip wall dimensions entirely when an export run requested it.
+                if (this.exportHideDimensions) return;
                 const dx = wall.end.x - wall.start.x;
                 const dy = wall.end.y - wall.start.y;
                 const length = Math.sqrt(dx * dx + dy * dy);
@@ -8412,6 +8486,25 @@
                             <input type="checkbox" id="export-include-grid" checked>
                             <span>Show grid lines</span>
                         </label>
+                    </div>
+                </div>
+                <div class="property-row" id="export-dimensions-option" style="margin-bottom: 15px;">
+                    <label style="min-width: 120px;">Dimensions:</label>
+                    <div style="flex: 1;">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" id="export-include-dimensions" checked>
+                            <span>Show wall &amp; furniture dimensions</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="property-row" id="export-color-option" style="margin-bottom: 15px;">
+                    <label style="min-width: 120px;">Color:</label>
+                    <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" id="export-color-override">
+                            <span>Override all colors</span>
+                        </label>
+                        <input type="color" id="export-color-value" value="#000000" style="width: 48px; height: 30px; padding: 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
                     </div>
                 </div>
             </div>
