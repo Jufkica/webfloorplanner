@@ -1,0 +1,28 @@
+# OS / editor artifacts
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs / temp
+*.log
+*.tmp
+*.bak
+
+# Local env / secrets (defense in depth — none in repo today)
+.env
+.env.*
+*.pem
+*.key
+credentials*
+
+# Build / dependency dirs (just in case)
+node_modules/
+dist/
+build/

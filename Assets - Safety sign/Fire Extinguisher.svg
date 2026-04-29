@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg height="200" width="200" version="1.0" id="svg22" sodipodi:docname="proposal-1.1.svg" inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs id="defs26"/>
+  <sodipodi:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1" objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-width="1920" inkscape:window-height="1009" id="namedview24" showgrid="false" inkscape:zoom="3.7186616" inkscape:cx="100.03599" inkscape:cy="99.901534" inkscape:window-x="-8" inkscape:window-y="-8" inkscape:window-maximized="1" inkscape:current-layer="svg22" inkscape:showpageshadow="0" inkscape:pagecheckerboard="0" inkscape:deskcolor="#505050"/>
+  <metadata id="metadata2">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <path d="m5.4189,5.423,189.16,0,0,189.15-189.16,0,0-189.15z" fill-rule="evenodd" fill="#a92121" id="path6"/>
+  <path d="m50,50,0-12-5,0c-16.763,17.711-15,11-15.935,25.799l-6.388,0.02405c0.323-24.823-1.677-17.823,21.782-38.958l8.541,0.135v-5h16v6c4.5631,0.1005,8.964,0.60059,13,2v9c-3.0449,0.87653-6.8647,1.3052-11,2l-0.208,10.963c10.633,3.325,17.309,7.857,17.208,19.037l-1,111h-54v-111c1.982-15.259,9.445-18.737,17-19z" fill="#ffffff" id="path8"/>
+  <rect style="enable-background:accumulate;color:#000000;" height="25" width="40" y="80" x="40" fill="#ab2323" id="rect20"/>
+  <text xml:space="preserve" style="font-size:64px;line-height:0.9;fill:#000000" x="125.58282" y="63.463688" id="text1"><tspan sodipodi:role="line" id="tspan1" x="125.58282" y="63.463688" style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;line-height:0.9;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#ffffff">A</tspan><tspan sodipodi:role="line" x="125.58282" y="121.80455" style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;line-height:0.9;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#ffffff" id="tspan2">B</tspan><tspan sodipodi:role="line" x="125.58282" y="180.1454" style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;line-height:0.9;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#ffffff" id="tspan3">C</tspan></text>
+</svg>
