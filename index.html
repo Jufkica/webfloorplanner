@@ -5103,7 +5103,7 @@
                 this.canvas.appendChild(line);
                 
                 // Perpendicular tick marks at each endpoint.
-                const tickLen = 14 / this.zoom;
+                const tickLen = 26 / this.zoom;
                 const angle = Math.atan2(dy, dx);
                 const perpX = -Math.sin(angle);
                 const perpY = Math.cos(angle);
@@ -5129,13 +5129,13 @@
                 if (labelAngleDeg > 90) labelAngleDeg -= 180;
                 else if (labelAngleDeg < -90) labelAngleDeg += 180;
                 
-                const offsetDist = 22 / this.zoom;
+                const offsetDist = 42 / this.zoom;
                 const midX = (ruler.start.x + ruler.end.x) / 2 + perpX * offsetDist;
                 const midY = (ruler.start.y + ruler.end.y) / 2 + perpY * offsetDist;
                 
-                const fontSize = 26 / this.zoom;
-                const padX = 8 / this.zoom;
-                const padY = 4 / this.zoom;
+                const fontSize = 60 / this.zoom;
+                const padX = 14 / this.zoom;
+                const padY = 7 / this.zoom;
                 const approxW = label.length * fontSize * 0.55 + padX * 2;
                 const approxH = fontSize + padY * 2;
                 
@@ -5147,10 +5147,10 @@
                 bg.setAttribute('y', -approxH / 2);
                 bg.setAttribute('width', approxW);
                 bg.setAttribute('height', approxH);
-                bg.setAttribute('rx', 3 / this.zoom);
+                bg.setAttribute('rx', 5 / this.zoom);
                 bg.setAttribute('fill', '#ffffff');
                 bg.setAttribute('stroke', stroke);
-                bg.setAttribute('stroke-width', 1 / this.zoom);
+                bg.setAttribute('stroke-width', 2 / this.zoom);
                 if (isPreview) bg.setAttribute('opacity', '0.85');
                 labelGroup.appendChild(bg);
                 
