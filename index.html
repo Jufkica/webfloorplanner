@@ -4199,26 +4199,20 @@
                 URL.revokeObjectURL(url);
             }
 
-            // Walk an exported SVG tree and rewrite stroke/fill colors to a
-            // single user-chosen color. We deliberately leave a few things
-            // alone so the result stays readable:
+            // Walk an exported SVG tree and rewrite OUTLINE and TEXT colors
+            // to the user-chosen color. We intentionally leave shape fills
+            // (rect/path/circle/etc.) alone so the inside of furniture, doors,
+            // and safety icons keeps its original look. Specifically:
+            //   - stroke is rewritten on every element (when not 'none' and
+            //     not a url(...) reference such as the wall hatch pattern)
+            //   - fill is rewritten ONLY on <text> elements (so text labels
+            //     pick up the new color)
             //   - elements (and descendants) tagged data-export-keep-color
             //     (used by the density heatmap layer) keep their colors
-            //   - 'none' and url(...) references (e.g. the wall hatch pattern)
-            //     stay as-is
-            //   - white-ish fills (label pill backgrounds, door interiors,
-            //     pattern background, page background) stay white so the
-            //     override color contrasts against them
             applyExportColorOverride(root, color) {
                 if (!root || root.nodeType !== 1) return;
                 if (root.getAttribute && root.getAttribute('data-export-keep-color') === '1') return;
                 
-                const isWhite = (v) => {
-                    if (!v) return false;
-                    const s = v.trim().toLowerCase();
-                    return s === 'white' || s === '#fff' || s === '#ffffff' ||
-                           s === 'rgb(255,255,255)' || s === 'rgb(255, 255, 255)';
-                };
                 const isReplaceable = (v) => {
                     if (!v) return false;
                     const s = v.trim().toLowerCase();
@@ -4231,9 +4225,14 @@
                 if (isReplaceable(stroke)) {
                     root.setAttribute('stroke', color);
                 }
-                const fill = root.getAttribute && root.getAttribute('fill');
-                if (isReplaceable(fill) && !isWhite(fill)) {
-                    root.setAttribute('fill', color);
+                // Only recolor fill on text (<text>, <tspan>) so object interiors
+                // stay as drawn by the original asset renderers.
+                const tag = root.tagName && root.tagName.toLowerCase();
+                if (tag === 'text' || tag === 'tspan') {
+                    const fill = root.getAttribute && root.getAttribute('fill');
+                    if (isReplaceable(fill)) {
+                        root.setAttribute('fill', color);
+                    }
                 }
                 
                 const children = root.children;
